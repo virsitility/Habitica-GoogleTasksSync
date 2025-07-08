@@ -31,7 +31,7 @@ function main() {
 
   // Update changes in task name, due date, or checklist
   let incompleteGTaskIDsInHabitica = gtasksIncompleteIDs.filter(x => habiticaTodoAliases.includes(x));
-  
+
   //    Find any mismatch in name, due dates, or checklist and update them
   for (let t of incompleteGTaskIDsInHabitica){
     let habiticaTodo = getHabiticaTodoFromAlias(t);
@@ -39,14 +39,35 @@ function main() {
     let payload = {};
     let needsUpdate = false;
 
-    // Check for name change
-    const newHabiticaName = gtask.taskListName + ": " + gtask.text;
-    if (habiticaTodo.text !== newHabiticaName) {
-        payload.text = newHabiticaName;
+    // Generate the expected payload from the Google Task, which includes cleaned text, priority, and tags
+    const expectedHabiticaPayload = gtask.convertToHabiticaPayload();
+
+    // 1. Check for name change
+    // The text in expectedHabiticaPayload is already cleaned (H@, @digit, #tag removed)
+    if (habiticaTodo.text !== expectedHabiticaPayload.text) {
+        payload.text = expectedHabiticaPayload.text;
         needsUpdate = true;
     }
 
-    // Check for due date change
+    // 2. Check for difficulty (priority) change
+    if (habiticaTodo.priority !== expectedHabiticaPayload.priority) {
+        payload.priority = expectedHabiticaPayload.priority;
+        needsUpdate = true;
+    }
+
+    // 3. Check for tags change
+    // HabiticaTodo.tags is an array of {tagName, tagId} objects.
+    // expectedHabiticaPayload.tags is an array of tagIds.
+    // Need to normalize currentHabiticaTagIds for comparison.
+    const currentHabiticaTagIds = habiticaTodo.tags ? habiticaTodo.tags.map(tag => tag.tagId).sort() : [];
+    const expectedHabiticaTagIds = expectedHabiticaPayload.tags ? expectedHabiticaPayload.tags.sort() : [];
+
+    if (JSON.stringify(currentHabiticaTagIds) !== JSON.stringify(expectedHabiticaTagIds)) {
+        payload.tags = expectedHabiticaTagIds;
+        needsUpdate = true;
+    }
+
+    // 4. Check for due date change
     const gtaskDueDate = gtask.dueDate ? new Date(gtask.dueDate) : null;
     const habiticaDueDate = habiticaTodo.dueDate ? new Date(habiticaTodo.dueDate) : null;
     if (gtaskDueDate?.valueOf() !== habiticaDueDate?.valueOf()) {
@@ -54,10 +75,9 @@ function main() {
         needsUpdate = true;
     }
 
-    // Check for checklist changes
+    // 5. Check for checklist changes
     const subtasks = getGSubtasksForId(gtask.taskId);
     const newChecklist = subtasks.map(st => ({ text: st.text, completed: st.isCompleted }));
-    // FIX: Ensure habiticaTodo.checklist is an array before mapping.
     const oldChecklist = (habiticaTodo.checklist || []).map(item => ({ text: item.text, completed: item.completed })); // Normalize old checklist
 
     if (JSON.stringify(oldChecklist) !== JSON.stringify(newChecklist)) {
@@ -66,13 +86,7 @@ function main() {
     }
 
     if (needsUpdate) {
-        // --- DEBUGGING START ---
-        Logger.log(">>> Sending UPDATE request for task: " + gtask.text);
-        Logger.log(">>> Payload being sent: " + JSON.stringify(payload));
-        var response = buildRequest("put", "tasks/" + habiticaTodo.id, payload);
-        Logger.log(">>> API Response Code: " + response.getResponseCode());
-        Logger.log(">>> API Response Content: " + response.getContentText());
-        // --- DEBUGGING END ---
+        buildRequest("put", "tasks/" + habiticaTodo.id, payload);
     }
   }
 
