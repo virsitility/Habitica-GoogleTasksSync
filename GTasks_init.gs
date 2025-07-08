@@ -93,6 +93,11 @@ function getGTasksPerList(taskListData){
 
   if (tasks.items) {
     for (let t of tasks.items){
+      // Skip if task title starts with //
+      if (t.title.startsWith('//')) {
+        continue;
+      }
+
       let task = new GoogleTask(t.title, t.id, t.parent, listID, listName, Boolean(t.completed), t.due, t.notes);
 
       if (t.title === "Recurring task test"){
