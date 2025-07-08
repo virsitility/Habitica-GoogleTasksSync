@@ -57,7 +57,8 @@ function main() {
     // Check for checklist changes
     const subtasks = getGSubtasksForId(gtask.taskId);
     const newChecklist = subtasks.map(st => ({ text: st.text, completed: st.isCompleted }));
-    const oldChecklist = habiticaTodo.checklist.map(item => ({ text: item.text, completed: item.completed })); // Normalize old checklist
+    // FIX: Ensure habiticaTodo.checklist is an array before mapping.
+    const oldChecklist = (habiticaTodo.checklist || []).map(item => ({ text: item.text, completed: item.completed })); // Normalize old checklist
 
     if (JSON.stringify(oldChecklist) !== JSON.stringify(newChecklist)) {
         payload.checklist = newChecklist;
@@ -65,7 +66,13 @@ function main() {
     }
 
     if (needsUpdate) {
-        buildRequest("put", "tasks/" + habiticaTodo.id, payload);
+        // --- DEBUGGING START ---
+        Logger.log(">>> Sending UPDATE request for task: " + gtask.text);
+        Logger.log(">>> Payload being sent: " + JSON.stringify(payload));
+        var response = buildRequest("put", "tasks/" + habiticaTodo.id, payload);
+        Logger.log(">>> API Response Code: " + response.getResponseCode());
+        Logger.log(">>> API Response Content: " + response.getContentText());
+        // --- DEBUGGING END ---
     }
   }
 

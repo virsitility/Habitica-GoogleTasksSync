@@ -31,29 +31,25 @@ class HabiticaTag{
 }
 
 function buildRequest(method, url, payload){
-  if (payload === undefined){
-   var params = {
+  var params = {
      "method" : method,
      "headers" : {
        "x-api-user" : PropertiesService.getScriptProperties().getProperty("habitica_userid"), 
        "x-api-key" : PropertiesService.getScriptProperties().getProperty("habitica_apikey")
      },
      "muteHttpExceptions": true
-   }
-  } else {
-   var params = {
-     "method" : method,
-     "headers" : {
-       "x-api-user" : PropertiesService.getScriptProperties().getProperty("habitica_userid"), 
-       "x-api-key" : PropertiesService.getScriptProperties().getProperty("habitica_apikey")
-     },
-     "payload": payload,
-     "muteHttpExceptions": true
-   }
+   };
+
+  if (payload !== undefined){
+    params.contentType = "application/json";
+    params.payload = JSON.stringify(payload);
   }
 
-    var response = UrlFetchApp.fetch(PropertiesService.getScriptProperties().getProperty("habitica_apiurl") + url, params);
-    return response
+  // Add a delay to avoid hitting the rate limit
+  Utilities.sleep(1000); // 1 second delay
+
+  var response = UrlFetchApp.fetch(PropertiesService.getScriptProperties().getProperty("habitica_apiurl") + url, params);
+  return response
 }
 
 function getTags(){
