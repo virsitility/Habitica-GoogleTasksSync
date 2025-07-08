@@ -19,11 +19,20 @@ class GoogleTask{
   }
 
   convertToHabiticaPayload(){
+    // 1. 尋找對應的標籤 ID
+    var tagId = getTagIdFromName(this.taskListName);
+
     var payload = {
       "type" : "todo",
       "text" : this.taskListName + ": " + this.text,
       "alias" : this.taskId,
       "notes" : this.notes,
+      "priority": 1.5 // 2. 設定預設難度為 "中等"
+    }
+
+    // 3. 如果找到了標籤 ID，就將其加入 payload
+    if (tagId !== ""){
+      payload["tags"] = [tagId];
     }
 
     if (this.parentId === undefined){
@@ -109,4 +118,9 @@ function getGTasks(){
   // return [completedList, notCompletedList];
   gtasksListCompleted = completedList;
   gtasksListNotCompleted = notCompletedList;
+
+  // Segregate main tasks and subtasks
+  const allTasks = gtasksListCompleted.concat(gtasksListNotCompleted);
+  gtasksMainTasks = allTasks.filter(t => t.parentId === undefined);
+  gtasksSubtasks = allTasks.filter(t => t.parentId !== undefined);
 }

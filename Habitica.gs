@@ -11,7 +11,7 @@ function getTagNameFromId(tagId){
 function getTagIdFromName(tagName){
   for (let t of habiticaTags){
     if (t.tagName === tagName){
-      return t.tagName;
+      return t.tagId;
     }
   }
 
@@ -43,7 +43,18 @@ function getHabiticaTodoFromAlias(alias){
 
 function addGTaskToHabitica(gtaskId){
   var gtask = getGTaskFromId(gtaskId);
-  buildRequest("post", "tasks/user", gtask.convertToHabiticaPayload());
+  var payload = gtask.convertToHabiticaPayload();
+
+  // Add checklist from subtasks
+  var subtasks = getGSubtasksForId(gtaskId);
+  if (subtasks.length > 0) {
+    payload.checklist = subtasks.map(st => ({
+      text: st.text,
+      completed: st.isCompleted
+    }));
+  }
+
+  buildRequest("post", "tasks/user", payload);
 }
 
 function markGTaskAsDone(gtaskId){

@@ -29,6 +29,10 @@ function getGTaskFromId(taskId){
   return "";
 }
 
+function getGSubtasksForId(mainTaskId){
+  return gtasksSubtasks.filter(subtask => subtask.parentId === mainTaskId);
+}
+
 
 function gtasks_testing(){
   getGTasks();

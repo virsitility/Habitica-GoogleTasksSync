@@ -81,7 +81,7 @@ function getTodosFromHabitica(){
   if (data.success){
     for(let i of data.data){
       if (i.type === "todo"){
-        var todo = new HabiticaTodo(i.text, i.id, i.notes, false);
+        var todo = new HabiticaTodo(i.text, i.id, i.notes, false, i.checklist);
         if (i.tags.length){
           var tags = [];
           for(let t of i.tags){
