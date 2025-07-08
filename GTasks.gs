@@ -2,12 +2,12 @@ function getGTasksId(){
   var completedList = [];
   var notCompletedList = [];
 
-  for (let i of gtasksListCompleted){
-    completedList.push(i.taskId);
-  }
-
-  for (let i of gtasksListNotCompleted){
-    notCompletedList.push(i.taskId);
+  for (let i of gtasksMainTasks){
+    if (i.isCompleted){
+      completedList.push(i.taskId);
+    } else {
+      notCompletedList.push(i.taskId);
+    }
   }
 
   return [completedList, notCompletedList];
