@@ -18,6 +18,26 @@ function getTagIdFromName(tagName){
   return "";
 }
 
+function createHabiticaTag(tagName) {
+  Logger.log("Creating new Habitica tag: " + tagName);
+  const payload = { name: tagName };
+  const response = buildRequest("post", "tags", payload);
+  const responseCode = response.getResponseCode();
+
+  if (responseCode === 201) { // 201 means 'Created'
+    const data = JSON.parse(response.getContentText());
+    if (data.success) {
+      const newTag = new HabiticaTag(data.data.name, data.data.id);
+      habiticaTags.push(newTag); // Add to our global list
+      Logger.log("Successfully created tag with ID: " + newTag.tagId);
+      return newTag;
+    }
+  }
+  
+  Logger.log("Failed to create tag. Response Code: " + responseCode + ", Content: " + response.getContentText());
+  return null;
+}
+
 function getHabiticaTodoAliases(){
   var aliasList = [];
   for (let t of habiticaTodos){

@@ -45,8 +45,9 @@ function buildRequest(method, url, payload){
     params.payload = JSON.stringify(payload);
   }
 
-  // Add a delay to avoid hitting the rate limit
-  Utilities.sleep(1000); // 1 second delay
+  // Add a configurable delay to avoid hitting the rate limit
+  const delay = (PropertiesService.getScriptProperties().getProperty("delay_in_seconds") || 1) * 1000;
+  Utilities.sleep(delay);
 
   var response = UrlFetchApp.fetch(PropertiesService.getScriptProperties().getProperty("habitica_apiurl") + url, params);
   return response

@@ -20,7 +20,15 @@ class GoogleTask{
 
   convertToHabiticaPayload(){
     // 1. 尋找對應的標籤 ID
-    var tagId = getTagIdFromName(this.taskListName);
+    let tagId = getTagIdFromName(this.taskListName);
+
+    // If tag doesn't exist, create it.
+    if (tagId === "" && this.taskListName) {
+      const newTag = createHabiticaTag(this.taskListName);
+      if (newTag) {
+        tagId = newTag.tagId;
+      }
+    }
 
     var payload = {
       "type" : "todo",
